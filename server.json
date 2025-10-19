@@ -1,0 +1,11 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
+  "name": "io.github.Chris85appding/unified-offer-protocol",
+  "title": "Unified Offer Protocol MCP Server",
+  "description": "AI-powered e-commerce product search, affiliate links, and price negotiation",
+  "version": "2.0.5",
+  "repository": {
+    "url": "https://github.com/UnifiedOffer/mcp-server-public",
+    "source": "github"
+  }
+}

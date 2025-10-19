@@ -1,0 +1,537 @@
+{
+  "$schema": "https://raw.githubusercontent.com/modelcontextprotocol/specification/main/schema/mcp.schema.json",
+  "name": "unified-offer-protocol",
+  "version": "2.0.1",
+  "description": "Universal MCP Server for AI-powered product search, affiliate link generation, and price negotiation. Connects AI applications to e-commerce platforms (Shopify, WooCommerce, Shopware 6) with automatic discount generation and commission tracking.",
+  "homepage": "https://unifiedoffer.com/mcp",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/UnifiedOffer/mcp-server-public"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Unified Offer Protocol",
+    "email": "support@unifiedoffer.com",
+    "url": "https://unifiedoffer.com"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "assistant",
+    "e-commerce",
+    "affiliate",
+    "shopify",
+    "woocommerce",
+    "shopware",
+    "product-search",
+    "price-negotiation",
+    "openai",
+    "anthropic",
+    "claude",
+    "chatgpt"
+  ],
+  "categories": [
+    "e-commerce",
+    "search",
+    "ai-assistant",
+    "affiliate-marketing"
+  ],
+  "server": {
+    "type": "http",
+    "url": "https://api.unifiedoffer.com/functions/v1/mcp-http-wrapper",
+    "transport": "http/rest",
+    "protocol": "mcp/2024-11-05"
+  },
+  "authentication": {
+    "type": "api-key",
+    "header": "x-api-key",
+    "description": "Get your free API key at https://unifiedoffer.com",
+    "documentation": "https://unifiedoffer.com/mcp#authentication"
+  },
+  "capabilities": {
+    "tools": true,
+    "resources": false,
+    "prompts": false,
+    "streaming": false
+  },
+  "tools": [
+    {
+      "name": "searchProducts",
+      "description": "Search for products across all connected e-commerce platforms. Supports natural language queries, price filters, categories, and negotiability filtering. Returns product details with affiliate link generation capability.",
+      "category": "search",
+      "complexity": "medium",
+      "averageLatency": 1683,
+      "inputSchema": {
+        "type": "object",
+        "required": ["query"],
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Natural language search query (e.g., 'gaming laptop under $1500')"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of results (default: 10, max: 50)",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 10
+          },
+          "minPrice": {
+            "type": "number",
+            "description": "Minimum price filter"
+          },
+          "maxPrice": {
+            "type": "number",
+            "description": "Maximum price filter"
+          },
+          "category": {
+            "type": "string",
+            "description": "Product category filter"
+          },
+          "negotiable": {
+            "type": "boolean",
+            "description": "Filter for negotiable products only"
+          },
+          "language": {
+            "type": "string",
+            "description": "Response language (default: 'en')",
+            "enum": ["en", "de", "fr", "es", "it"],
+            "default": "en"
+          }
+        }
+      },
+      "examples": [
+        {
+          "description": "Search for gaming laptops",
+          "input": {
+            "query": "gaming laptop",
+            "limit": 5,
+            "maxPrice": 1500
+          }
+        },
+        {
+          "description": "Find negotiable running shoes",
+          "input": {
+            "query": "running shoes",
+            "negotiable": true,
+            "limit": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "generateLinks",
+      "description": "Generate trackable affiliate links for products with automatic discount code application. Supports both developer and merchant API keys with appropriate commission structures.",
+      "category": "conversion",
+      "complexity": "medium",
+      "averageLatency": 2138,
+      "inputSchema": {
+        "type": "object",
+        "required": ["productIds"],
+        "properties": {
+          "productIds": {
+            "type": "array",
+            "description": "Array of product IDs to generate links for",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "maxItems": 50
+          },
+          "customMetadata": {
+            "type": "object",
+            "description": "Optional custom tracking metadata"
+          }
+        }
+      },
+      "examples": [
+        {
+          "description": "Generate affiliate links for products",
+          "input": {
+            "productIds": ["prod_123", "prod_456"],
+            "customMetadata": {
+              "campaign": "summer_sale"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "negotiatePrice",
+      "description": "Negotiate product prices with intelligent pricing algorithms. Returns best available discount with automatic commission calculation. Respects merchant-configured negotiation limits.",
+      "category": "pricing",
+      "complexity": "high",
+      "averageLatency": 2336,
+      "inputSchema": {
+        "type": "object",
+        "required": ["productId"],
+        "properties": {
+          "productId": {
+            "type": "string",
+            "description": "Product ID to negotiate price for"
+          },
+          "requestedDiscount": {
+            "type": "number",
+            "description": "Requested discount percentage (0-100)",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "reason": {
+            "type": "string",
+            "description": "Reason for negotiation request"
+          },
+          "round": {
+            "type": "integer",
+            "description": "Negotiation round number (1-10)",
+            "minimum": 1,
+            "maximum": 10,
+            "default": 1
+          }
+        }
+      },
+      "examples": [
+        {
+          "description": "Request 15% discount on product",
+          "input": {
+            "productId": "prod_789",
+            "requestedDiscount": 15,
+            "reason": "Buying multiple items"
+          }
+        }
+      ]
+    },
+    {
+      "name": "chat",
+      "description": "Conversational AI assistant with multi-LLM support (OpenAI, Anthropic, Google Gemini, Mistral, Cohere, Groq). Provides intelligent product recommendations, price negotiations, and shopping assistance with persistent thread context.",
+      "category": "conversation",
+      "complexity": "high",
+      "averageLatency": 5743,
+      "inputSchema": {
+        "type": "object",
+        "required": ["message"],
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "User message or query"
+          },
+          "threadId": {
+            "type": "string",
+            "description": "Thread ID for conversation continuity"
+          },
+          "configId": {
+            "type": "string",
+            "description": "LLM configuration ID (optional)"
+          },
+          "configName": {
+            "type": "string",
+            "description": "LLM configuration name (e.g., 'openai-gpt-4o')"
+          },
+          "llmConfig": {
+            "type": "object",
+            "description": "Custom LLM configuration",
+            "properties": {
+              "provider": {
+                "type": "string",
+                "enum": ["openai", "anthropic", "google", "mistral", "cohere", "groq"]
+              },
+              "model": {
+                "type": "string"
+              },
+              "temperature": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 2
+              }
+            }
+          },
+          "options": {
+            "type": "object",
+            "description": "Additional options for the chat request"
+          }
+        }
+      },
+      "examples": [
+        {
+          "description": "Ask for product recommendations",
+          "input": {
+            "message": "I need a laptop for video editing under $2000"
+          }
+        },
+        {
+          "description": "Continue existing conversation",
+          "input": {
+            "message": "What about gaming performance?",
+            "threadId": "thread_abc123"
+          }
+        }
+      ]
+    },
+    {
+      "name": "listThreads",
+      "description": "List all conversation threads for the authenticated user. Supports filtering by status and pagination.",
+      "category": "thread-management",
+      "complexity": "low",
+      "averageLatency": 578,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Filter threads by status",
+            "enum": ["active", "expired", "all"],
+            "default": "active"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of threads to return",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 50
+          },
+          "offset": {
+            "type": "integer",
+            "description": "Pagination offset",
+            "minimum": 0,
+            "default": 0
+          }
+        }
+      },
+      "examples": [
+        {
+          "description": "List active threads",
+          "input": {
+            "status": "active",
+            "limit": 20
+          }
+        }
+      ]
+    },
+    {
+      "name": "getThread",
+      "description": "Retrieve complete conversation history for a specific thread including all messages, tool calls, and context.",
+      "category": "thread-management",
+      "complexity": "low",
+      "averageLatency": 809,
+      "inputSchema": {
+        "type": "object",
+        "required": ["threadId"],
+        "properties": {
+          "threadId": {
+            "type": "string",
+            "description": "Thread ID to retrieve"
+          }
+        }
+      },
+      "examples": [
+        {
+          "description": "Get thread details",
+          "input": {
+            "threadId": "thread_abc123"
+          }
+        }
+      ]
+    },
+    {
+      "name": "extendThread",
+      "description": "Extend the expiration time of an active thread (default: 24 hours from extension). Prevents thread expiry during long conversations.",
+      "category": "thread-management",
+      "complexity": "low",
+      "averageLatency": 832,
+      "inputSchema": {
+        "type": "object",
+        "required": ["threadId"],
+        "properties": {
+          "threadId": {
+            "type": "string",
+            "description": "Thread ID to extend"
+          },
+          "hours": {
+            "type": "integer",
+            "description": "Number of hours to extend (default: 24, max: 168)",
+            "minimum": 1,
+            "maximum": 168,
+            "default": 24
+          }
+        }
+      },
+      "examples": [
+        {
+          "description": "Extend thread by 48 hours",
+          "input": {
+            "threadId": "thread_abc123",
+            "hours": 48
+          }
+        }
+      ]
+    },
+    {
+      "name": "negotiateBatch",
+      "description": "Negotiate prices for multiple products competitively by comparing them against each other. Each product is negotiated with awareness of competitor prices to find the best deals. Returns sorted results with the best deal first.",
+      "category": "pricing",
+      "complexity": "high",
+      "averageLatency": 2800,
+      "inputSchema": {
+        "type": "object",
+        "required": ["productIds"],
+        "properties": {
+          "productIds": {
+            "type": "array",
+            "description": "Array of product IDs to negotiate competitively (2-10 products)",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 2,
+            "maxItems": 10
+          },
+          "sessionId": {
+            "type": "string",
+            "description": "Optional session ID for tracking"
+          },
+          "agentId": {
+            "type": "string",
+            "description": "Optional agent ID for analytics"
+          },
+          "customerContext": {
+            "type": "object",
+            "description": "Optional customer context for better negotiation",
+            "properties": {
+              "loyaltyTier": {
+                "type": "string",
+                "enum": ["bronze", "silver", "gold", "platinum"]
+              },
+              "previousOrders": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "bulkBuyer": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "examples": [
+        {
+          "description": "Compare 3 products competitively",
+          "input": {
+            "productIds": ["prod_123", "prod_456", "prod_789"]
+          }
+        },
+        {
+          "description": "Batch negotiation with customer context",
+          "input": {
+            "productIds": ["prod_abc", "prod_def"],
+            "customerContext": {
+              "loyaltyTier": "gold",
+              "previousOrders": 15,
+              "bulkBuyer": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "negotiateMultiRound",
+      "description": "Multi-round price negotiation with progressive discount offers. Automatically handles multiple negotiation rounds with intelligent acceptance thresholds and merchant-configured limits.",
+      "category": "pricing",
+      "complexity": "high",
+      "averageLatency": 3200,
+      "inputSchema": {
+        "type": "object",
+        "required": ["productId"],
+        "properties": {
+          "productId": {
+            "type": "string",
+            "description": "Product ID to negotiate"
+          },
+          "requestedDiscount": {
+            "type": "number",
+            "description": "Initial requested discount percentage (0-100)",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "maxRounds": {
+            "type": "integer",
+            "description": "Maximum negotiation rounds (default: merchant config, max: 10)",
+            "minimum": 1,
+            "maximum": 10,
+            "default": 3
+          },
+          "autoAccept": {
+            "type": "boolean",
+            "description": "Automatically accept when counter-offer meets threshold",
+            "default": true
+          },
+          "acceptanceThreshold": {
+            "type": "number",
+            "description": "Auto-accept if counter-offer is within this % of requested (default: 80)",
+            "minimum": 0,
+            "maximum": 100,
+            "default": 80
+          }
+        }
+      },
+      "examples": [
+        {
+          "description": "Multi-round negotiation with auto-accept",
+          "input": {
+            "productId": "prod_123",
+            "requestedDiscount": 15,
+            "maxRounds": 5,
+            "autoAccept": true,
+            "acceptanceThreshold": 85
+          }
+        }
+      ]
+    }
+  ],
+  "documentation": {
+    "quickStart": "https://unifiedoffer.com/mcp#quick-start",
+    "apiReference": "https://unifiedoffer.com/mcp#tools",
+    "authentication": "https://unifiedoffer.com/mcp#authentication",
+    "examples": "https://unifiedoffer.com/mcp#examples",
+    "openapi": "https://api.unifiedoffer.com/functions/v1/mcp-openapi-spec"
+  },
+  "support": {
+    "email": "support@unifiedoffer.com",
+    "documentation": "https://unifiedoffer.com/mcp",
+    "issues": "https://github.com/UnifiedOffer/mcp-server-public/issues"
+  },
+  "performance": {
+    "averageLatency": 2250,
+    "successRate": 100,
+    "uptime": 99.9,
+    "rateLimits": {
+      "light": "100 requests/minute (listThreads, getThread, extendThread)",
+      "standard": "60 requests/minute (searchProducts, generateLinks)",
+      "heavy": "30 requests/minute (negotiatePrice, chat)",
+      "batch": "20 requests/minute (negotiateBatch, negotiateMultiRound)"
+    }
+  },
+  "features": [
+    "Multi-platform e-commerce integration (Shopify, WooCommerce, Shopware 6)",
+    "Automatic discount code generation",
+    "Intelligent price negotiation (single, batch, multi-round)",
+    "Competitive batch pricing (compare multiple products)",
+    "Multi-LLM support (6 providers)",
+    "Thread-based persistent conversations",
+    "Multi-currency support (12 currencies)",
+    "Real-time product search",
+    "Commission tracking and analytics",
+    "Developer and merchant API keys",
+    "Production-grade rate limiting"
+  ],
+  "platforms": [
+    "shopify",
+    "woocommerce",
+    "shopware"
+  ],
+  "languages": [
+    "en",
+    "de",
+    "fr",
+    "es",
+    "it"
+  ]
+}
